@@ -10,7 +10,7 @@ public class FSM {
     public void start(State state) throws FSMException{
         if(!map.containsKey(state)) throw new FSMException("State not found");
         currentState = state;
-        currentState.enter();
+        currentState.run();
         running = true;
     }
     public void update() throws FSMException{

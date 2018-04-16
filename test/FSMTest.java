@@ -6,7 +6,7 @@ public class FSMTest {
 
         State state1 = new State() {
             @Override
-            public void enter() {
+            public void run() {
                 doSomething();
             }
         }; //anonymous class
@@ -16,7 +16,7 @@ public class FSMTest {
         fsm.add(state1, condition, state2); //You can use anonymous classes, lambdas, or method references.
 
         //Condition negatedCondition = () -> !checkFailure()
-        //fsm.add(state1, condition, state1); //These 2 lines isn't needed as it defaults to staying in its old state
+        //fsm.add(state1, condition, state1); //These 2 lines aren't needed as it defaults to staying in its old state
 
         for (int i = 0; i < 3; i++) {
             fsm.start(state1);
