@@ -13,6 +13,15 @@ public class FSM {
         running = true;
         currentState.run();
     }
+    public void startFlow(State state) throws FSMException{
+        if(!map.containsKey(state)) throw new FSMException("State not found");
+        currentState = state;
+        running = true;
+        while (running) {
+            currentState.run();
+            update();
+        }
+    }
     public void update() throws FSMException{
         if(running) {
             if(map.get(currentState).isEmpty()) {
