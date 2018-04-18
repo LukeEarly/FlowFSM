@@ -1,3 +1,3 @@
 public interface State {
-    void run();
+    void run() throws FSMException;
 }
