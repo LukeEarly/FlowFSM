@@ -50,6 +50,7 @@ public class FSM {
         start(currentState);
     }
     public void stop() {
+        currentState.stop();
         currentState = null;
         running = false;
     }
