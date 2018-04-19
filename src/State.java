@@ -1,18 +1,28 @@
 public class State {
-    private Runnable runnable;
-    private Runnale stopable;
-    public State(Runnable runnable, Runnable stoppable) {
+    private FSMRunnable runnable;
+    private FSMStoppable stoppable;
+
+    public State(FSMRunnable runnable, FSMStoppable stoppable) {
         this.runnable = runnable;
-        this.stopable = stoppable;
+        this.stoppable = stoppable;
     }
-    public State(Runnable runnable) {
-        Runnable stoppable = () -> ;
-        this(runnable, stoppable;
+
+    public State(FSMRunnable runnable) {
+        this(runnable, () -> {});
     }
+
     void run() throws FSMException {
         runnable.run();
     }
-    void stop(){
-        stoppable.run();
+
+    void stop() {
+        stoppable.stop();
     }
+}
+
+interface FSMRunnable {
+    void run() throws FSMException;
+}
+interface FSMStoppable {
+    void stop();
 }
