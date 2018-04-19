@@ -1,53 +1,76 @@
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
 public class FSM {
-    private Map<State, Map<Condition, State>> map = new HashMap<>();
+    private ArrayList<State> states = new ArrayList<>();
     private State currentState;
     private boolean running = false;
     private Thread flowThread;
-
+    public enum EndProtocol {
+        REPEAT_STATE, REPEAT_CHECK, STOP
+    }
+    private EndProtocol endProtocol;
+    public FSM(EndProtocol endProtocol) {
+        this.endProtocol = endProtocol;
+    }
     public void start(State state) throws FSMException{
         if(running) throw new FSMException("Already running");
-        if(!map.containsKey(state)) throw new FSMException("State not found");
+        if(!states.contains(state)) throw new FSMException("State not found");
         currentState = state;
         running = true;
         currentState.run();
     }
-    public void startFlow(State state) throws FSMException {
+    public void start() throws FSMException {start(currentState);}
+    public void startFlow(State state) {
         try {
             if (running) throw new FSMException("Already running");
-            if (!map.containsKey(currentState)) throw new FSMException("State not found");
+            if (!states.contains(state)) throw new FSMException("State not found");
             currentState = state;
             if (flowThread == null) {
-                flowThread = new Thread();
+                flowThread = new Thread(this::runFlow);
+                flowThread.start();
+            }
+        }catch (FSMException ex) {ex.printStackTrace();}
+    }
+    public void runFlow() {
+        try {
+            running = true;
+            while (running) {
+                currentState.run();
+                update();
             }
         }catch (FSMException ex) {
             if("STOP".equals(ex.getMessage())) stop();
+            else ex.printStackTrace();
         }
     }
-    private void runFlow() throws FSMException{
-        running = true;
-        while (running) {
-            currentState.run();
-            update();
-        }
-    }
-    public void update() throws FSMException{
+    public void update() {
+        State oldState = currentState;
         if(running) {
-            if(map.get(currentState).isEmpty()) {
+            if(currentState.conditions.isEmpty()) {
                 stop();
                 return;
             }
-            for (Condition condition : map.get(currentState).keySet()) {
+            for (Condition condition : currentState.conditions) {
                 if (condition.evaluate()) {
-                    currentState = map.get(currentState).get(condition);
-                    break;
+                    currentState = condition.yes;
+                    return;
+                }else if(condition.no != null) {
+                    currentState = condition.no;
+                    return;
                 }
             }
         }
-        start(currentState);
+        if(oldState.equals(currentState)) {
+            if(endProtocol == EndProtocol.STOP) {
+                stop();
+            }
+            if(endProtocol == EndProtocol.REPEAT_STATE) {
+                return;
+            }
+            if(endProtocol == EndProtocol.REPEAT_CHECK) {
+                update();
+            }
+        }
     }
     public void stop() {
         currentState.stop();
@@ -55,27 +78,37 @@ public class FSM {
         running = false;
     }
     public void addState(State state) {
-        if(!map.containsKey(state)) {
-            map.put(state, new LinkedHashMap<>());
+        if(!states.contains(state)) {
+            states.add(state);
         }
     }
     public FSM add(State before, Condition condition, State after) {
         addState(before);
         addState(after);
-        map.get(before).put(condition, after);
+        before.conditions.add(condition);
+        condition.yes = after;
         return this;
     }
     public FSM add(State before, Condition condition, State yes, State no) {
         add(before, condition, yes);
-        Condition negated = () -> !condition.evaluate();
-        add(before, condition, no);
+        condition.no = no;
         return this;
     }
-    public Map<State, Map<Condition, State>> getMap() {
-        return map;
+    public FSM add(State before, State after) {
+        add(before, new Condition(() -> true), after);
+        return this;
+    }
+    public ArrayList getStates() {
+        return states;
     }
 
     public boolean isRunning() {
         return running;
+    }
+
+    public void setDefaultStop(FSMStoppable stoppable) {
+        for(State s:states) {
+            s.setDefaultStoppable(stoppable);
+        }
     }
 }

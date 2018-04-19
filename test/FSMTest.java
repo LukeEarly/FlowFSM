@@ -2,21 +2,22 @@ import java.util.Random;
 
 public class FSMTest {
     public static void main(String[] args) throws FSMException{
-        FSM fsm = new FSM();
+        FSM fsm = new FSM(FSM.EndProtocol.REPEAT_STATE);
 
-        State state1 = new State() {
+        State state1 = new State(){
             @Override
             public void run() {
                 doSomething();
             }
+            public void stop() {}
         }; //anonymous class
-        Condition condition = FSMTest::checkFailure; //method reference
-        State state2 = () -> doSomethingElse(5); //lambda
+        Condition condition = new Condition(FSMTest::checkFailure); //method reference
+        State state2 = new State(() -> doSomethingElse(5)); //lambda
 
         fsm.add(state1, condition, state2); //You can use anonymous classes, lambdas, or method references.
 
         //Condition negatedCondition = () -> !checkFailure()
-        //fsm.add(state1, condition, state1); //These 2 lines aren't needed as it defaults to staying in its old state
+        //fsm.add(state1, condition, state1); //These 2 lines aren't needed as it defaults to staying in its old state because of the EndProtocol above
 
         for (int i = 0; i < 3; i++) {
             fsm.start(state1);
@@ -28,6 +29,7 @@ public class FSMTest {
                     e.printStackTrace();
                 }
                 fsm.update();
+                fsm.start();
                 if(!fsm.isRunning()) {
                     System.out.println("done");
                     break;
