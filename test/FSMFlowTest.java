@@ -2,11 +2,11 @@ import java.util.Random;
 
 public class FSMFlowTest {
     public static void main(String[] args) {
-        State state1 = FSMFlowTest::doSomething1;
-        State state2 = FSMFlowTest::doSomething2;
-        State state3 = FSMFlowTest::doSomething3;
-        State state4 = FSMFlowTest::doSomething4;
-        State state5 = FSMFlowTest::doSomething5;
+        State state1 = new State(FSMFlowTest::doSomething1);
+        State state2 = new State(FSMFlowTest::doSomething2);
+        State state3 = new State(FSMFlowTest::doSomething3);
+        State state4 = new State(FSMFlowTest::doSomething4);
+        State state5 = new State(FSMFlowTest::doSomething5);
         Condition condition1 = FSMFlowTest::checkSomething1;
         Condition condition2 = FSMFlowTest::checkSomething2;
         FSM fsm = new FSM();
